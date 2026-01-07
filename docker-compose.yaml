@@ -24,6 +24,8 @@ x-airflow-common:
     # Mount the services directory
     - ./services:/opt/airflow/services
   user: "${AIRFLOW_UID:-50000}:0"
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
   depends_on:
     &airflow-common-depends-on
     redis:
@@ -55,7 +57,7 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
-        condition: service_completed_successfully
+        condition: service_started
 
   airflow-scheduler:
     <<: *airflow-common
@@ -69,7 +71,7 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
-        condition: service_completed_successfully
+        condition: service_started
 
   airflow-worker:
     <<: *airflow-common
@@ -89,7 +91,7 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
-        condition: service_completed_successfully
+        condition: service_started
 
   airflow-triggerer:
     <<: *airflow-common
@@ -103,7 +105,7 @@ services:
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
-        condition: service_completed_successfully
+        condition: service_started
 
   airflow-init:
     <<: *airflow-common
