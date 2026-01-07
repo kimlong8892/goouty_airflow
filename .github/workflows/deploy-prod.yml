@@ -30,7 +30,7 @@ jobs:
           # Using ProxyCommand for cloudflared
           echo "Host deploy-target" >> ~/.ssh/config
           echo "  HostName ${{ secrets.SSH_HOST }}" >> ~/.ssh/config
-          echo "  User ${{ secrets.SSH_USERNAME }}" >> ~/.ssh/config
+          echo "  User ${{ secrets.SSH_USER }}" >> ~/.ssh/config
           echo "  Port ${{ secrets.SSH_PORT }}" >> ~/.ssh/config
           # Depending on if you need Client ID/Secret for CF Access, you might need to add headers here.
           # Assuming standard tunnel access:
