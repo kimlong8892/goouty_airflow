@@ -3,7 +3,7 @@ name: Deploy Airflow Dev
 on:
   push:
     branches:
-      - develop
+      - dev
 
 jobs:
   deploy:

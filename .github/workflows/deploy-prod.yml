@@ -3,7 +3,7 @@ name: Deploy Airflow Prod
 on:
   push:
     branches:
-      - main
+      - prod
 
 jobs:
   deploy:
