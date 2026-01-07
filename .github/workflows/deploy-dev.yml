@@ -1,0 +1,64 @@
+name: Deploy Airflow Dev
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies (sshpass, cloudflared)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+          
+          # Install cloudflared
+          curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+
+      - name: Setup SSH Config for Cloudflare Tunnel
+        run: |
+          mkdir -p ~/.ssh
+          # Config git-like ssh command wrapper or just configure ~/.ssh/config
+          # Using ProxyCommand for cloudflared
+          echo "Host deploy-target" >> ~/.ssh/config
+          echo "  HostName ${{ secrets.SSH_HOST }}" >> ~/.ssh/config
+          echo "  User ${{ secrets.SSH_USERNAME }}" >> ~/.ssh/config
+          echo "  Port ${{ secrets.SSH_PORT }}" >> ~/.ssh/config
+          # Depending on if you need Client ID/Secret for CF Access, you might need to add headers here.
+          # Assuming standard tunnel access:
+          echo "  ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h" >> ~/.ssh/config
+          # Bypass host key checking for automation (Caution: Man-in-the-middle risk, but common in CI)
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+          
+          chmod 600 ~/.ssh/config
+
+      - name: Deploy to Dev Server
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          # Define target directory on server
+          TARGET_DIR="${{ secrets.DEPLOY_PATH }}" 
+          # Or wherever you want to deploy on the server. Adjust as needed.
+          
+          echo "Deploying to DEV environment..."
+          
+          # 1. Sync files using rsync with sshpass and configured ssh host
+          # We define what to include/exclude
+          sshpass -e rsync -avz --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude '.env' \
+            --exclude 'logs/*' \
+            ./ dags plugins services docker-compose.yaml \
+            deploy-target:$TARGET_DIR/
+          
+          # 2. Restart/Update Docker Compose
+          sshpass -e ssh deploy-target "cd $TARGET_DIR && docker compose up -d --build"
