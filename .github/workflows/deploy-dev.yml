@@ -57,7 +57,7 @@ jobs:
             --exclude '.github' \
             --exclude '.env' \
             --exclude 'logs/*' \
-            ./ dags plugins services docker-compose.yaml \
+            ./ \
             deploy-target:$TARGET_DIR/
           
           # 2. Restart/Update Docker Compose
