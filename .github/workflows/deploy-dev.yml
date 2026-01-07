@@ -50,12 +50,19 @@ jobs:
           
           echo "Deploying to DEV environment..."
           
+          echo "Generating .env file..."
+          echo "AIRFLOW_UID=50000" > .env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .env
+          echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> .env
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+
           # 1. Sync files using rsync with sshpass and configured ssh host
           # We define what to include/exclude
           sshpass -e rsync -avz --delete \
             --exclude '.git' \
             --exclude '.github' \
-            --exclude '.env' \
             --exclude 'logs/*' \
             ./ \
             deploy-target:$TARGET_DIR/
